@@ -131,6 +131,7 @@ public:
     if (last_end_index > 0) {
       recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + static_cast<int>(last_end_index));
     }
+    ROS_DEBUG("There OK2");
     return last_payload;
   }
   ssize_t send(const char *d) const {
@@ -222,7 +223,6 @@ int main(int argc, char* argv[]) {
   while (ros::ok()) {
     ros::spinOnce();
     serial_device.ssend(packDatas());
-    ROS_DEBUG("There OK");
     // ReSharper disable once CppDFAConstantConditions
     if(decodeDatas(serial_device.sread())) {
       std_msgs::Int32 send_msg;
