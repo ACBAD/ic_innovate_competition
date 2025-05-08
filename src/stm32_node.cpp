@@ -134,6 +134,7 @@ public:
       }
       tread(timeout_ms);
     }
+    return {};
   }
   ssize_t send(const char *d) const {
     if (serial_port < 0)
