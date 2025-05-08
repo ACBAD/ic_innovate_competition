@@ -99,14 +99,12 @@ public:
     std::vector<uint8_t> current_frame;
     bool in_frame = false;
     bool escape = false;
-    size_t last_end_index = 0;
     for(int retry = 0; retry < 10; retry++) {
-      for (size_t i = 0; i < recv_buffer.size(); ++i) {
-        uint8_t byte = recv_buffer[i];
+      tread(timeout_ms);
+      for (unsigned char byte : recv_buffer) {
         if (byte == 0xC0) {
           if (in_frame && !current_frame.empty()) {
             payload = current_frame;
-            last_end_index = i + 1;
           }
           current_frame.clear();
           in_frame = true;
@@ -128,24 +126,11 @@ public:
         }
       }
       if (!payload.empty()) {
-        recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + static_cast<int>(last_end_index));
         recv_buffer.clear();
         return payload;
       }
-      tread(timeout_ms);
     }
     return {};
-  }
-  ssize_t send(const char *d) const {
-    if (serial_port < 0)
-      return -10;
-    tcflush(serial_port, TCIOFLUSH);
-    const ssize_t write_count = write(serial_port, d, strlen(d));
-    if (write_count == static_cast<ssize_t>(strlen(d)))
-      ROS_DEBUG("Send: %s", d);
-    else
-      ROS_WARN("Send failed: %s (sent %ld)", d, write_count);
-    return write_count;
   }
   ssize_t ssend(const std::vector<uint8_t>& payload) const {
     if (serial_port < 0)
