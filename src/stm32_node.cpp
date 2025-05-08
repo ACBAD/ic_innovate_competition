@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
   while (ros::ok()) {
     ros::spinOnce();
     serial_device.ssend(packDatas());
-    if(decodeDatas(serial_device.sread())) {
+    if(decodeDatas(serial_device.sread(2))) {
       std_msgs::Int32 send_msg;
       send_msg.data = static_cast<int32_t>(rwheel_ticks);
       rw_pub.publish(send_msg);
