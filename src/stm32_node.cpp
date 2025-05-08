@@ -94,7 +94,7 @@ public:
     recv_buffer.insert(recv_buffer.end(), buffer.begin(), buffer.begin() + read_count);
     return &recv_buffer;
   }
-  std::vector<uint8_t> sread(const int timeout_ms = 2) {
+  std::vector<uint8_t> sread(const int timeout_ms = 5) {
     std::vector<uint8_t> payload;
     std::vector<uint8_t> current_frame;
     bool in_frame = false;
