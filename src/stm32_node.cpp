@@ -101,13 +101,12 @@ public:
     bool escape = false;
     size_t last_end_index = 0;
     while (true) {
-      // 扫描 recv_buffer，尝试提取最后一帧
       for (size_t i = 0; i < recv_buffer.size(); ++i) {
         uint8_t byte = recv_buffer[i];
         if (byte == 0xC0) {
           if (in_frame && !current_frame.empty()) {
-            payload = current_frame;       // 保存帧
-            last_end_index = i + 1;        // 标记帧尾
+            payload = current_frame;
+            last_end_index = i + 1;
           }
           current_frame.clear();
           in_frame = true;
@@ -129,17 +128,11 @@ public:
         }
       }
       if (!payload.empty()) {
-        // 找到完整帧，裁剪已处理数据并返回
         recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + static_cast<int>(last_end_index));
         recv_buffer.clear();
         return payload;
       }
-      // 没找到完整帧，尝试再读取一次
-      const bool ok = tread(timeout_ms);
-      if (!ok) {
-        ROS_WARN("sread timeout or read error while waiting for SLIP frame");
-        return {};  // 读失败或超时，返回空帧
-      }
+      tread(timeout_ms);
     }
   }
   ssize_t send(const char *d) const {
@@ -232,7 +225,7 @@ int main(int argc, char* argv[]) {
   while (ros::ok()) {
     ros::spinOnce();
     serial_device.ssend(packDatas());
-    if(decodeDatas(serial_device.sread(2))) {
+    if(decodeDatas(serial_device.sread())) {
       std_msgs::Int32 send_msg;
       send_msg.data = static_cast<int32_t>(rwheel_ticks);
       rw_pub.publish(send_msg);
