@@ -131,6 +131,7 @@ public:
       if (!payload.empty()) {
         // 找到完整帧，裁剪已处理数据并返回
         recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + static_cast<int>(last_end_index));
+        recv_buffer.clear();
         return payload;
       }
       // 没找到完整帧，尝试再读取一次
