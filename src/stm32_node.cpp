@@ -25,7 +25,6 @@ void updateVel(const geometry_msgs::Twist& msg) {global_vel_msg = msg;}
 
 class SerialDevice {
   int serial_port = -1;
-  std::vector<uint8_t> buffer;
   std::vector<uint8_t> recv_buffer;
 public:
   SerialDevice() {
@@ -59,7 +58,7 @@ public:
     int size = READ_STR_LENGTH;
     ioctl(serial_port, TIOCSWINSZ, &size);
     ROS_WARN("Set buffer size: %d", size);
-    buffer.resize(READ_STR_LENGTH);
+    recv_buffer.resize(READ_STR_LENGTH);
   }
   ~SerialDevice() {
     if (serial_port >= 0)
@@ -85,13 +84,15 @@ public:
       ROS_WARN("Poll event not triggered");
       return nullptr;
     }
-    const ssize_t read_count = read(serial_port, buffer.data(), buffer.size());
+    char buffer[READ_STR_LENGTH];
+    const ssize_t read_count = read(serial_port, buffer, READ_STR_LENGTH);
     if (read_count <= 0) {
       ROS_WARN("Read error, count = %ld", read_count);
       return nullptr;
     }
     ROS_DEBUG("Read %ld bytes", read_count);
-    recv_buffer.insert(recv_buffer.end(), buffer.begin(), buffer.begin() + read_count);
+    for (uint8_t i = 0; i < read_count; i++)
+      recv_buffer.push_back(buffer[i]);
     return &recv_buffer;
   }
   std::vector<uint8_t> sread(const int timeout_ms = 5) {
