@@ -94,44 +94,52 @@ public:
     recv_buffer.insert(recv_buffer.end(), buffer.begin(), buffer.begin() + read_count);
     return &recv_buffer;
   }
-  std::vector<uint8_t> sread() {
-    std::vector<uint8_t> last_payload;
+  std::vector<uint8_t> sread(const int timeout_ms = 50) {
+    std::vector<uint8_t> payload;
     std::vector<uint8_t> current_frame;
     bool in_frame = false;
     bool escape = false;
     size_t last_end_index = 0;
-    tread(200);
-    for (size_t i = 0; i < recv_buffer.size(); ++i) {
-      uint8_t byte = recv_buffer[i];
-      if (byte == 0xC0) {
-        if (in_frame && !current_frame.empty()) {
-          last_payload = current_frame;
-          last_end_index = i + 1;
+    while (true) {
+      // 扫描 recv_buffer，尝试提取最后一帧
+      for (size_t i = 0; i < recv_buffer.size(); ++i) {
+        uint8_t byte = recv_buffer[i];
+        if (byte == 0xC0) {
+          if (in_frame && !current_frame.empty()) {
+            payload = current_frame;       // 保存帧
+            last_end_index = i + 1;        // 标记帧尾
+          }
+          current_frame.clear();
+          in_frame = true;
+          escape = false;
+          continue;
         }
-        current_frame.clear();
-        in_frame = true;
-        escape = false;
-        continue;
+        if (!in_frame)
+          continue;
+        if (escape) {
+          if (byte == 0xDC)
+            current_frame.push_back(0xC0);
+          else if (byte == 0xDD)
+            current_frame.push_back(0xDB);
+          escape = false;
+        } else if (byte == 0xDB) {
+          escape = true;
+        } else {
+          current_frame.push_back(byte);
+        }
       }
-      if (!in_frame) {
-        continue;
+      if (!payload.empty()) {
+        // 找到完整帧，裁剪已处理数据并返回
+        recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + static_cast<int>(last_end_index));
+        return payload;
       }
-      if (escape) {
-        if (byte == 0xDC)
-          current_frame.push_back(0xC0);
-        else if (byte == 0xDD)
-          current_frame.push_back(0xDB);
-        escape = false;
-      } else if (byte == 0xDB) {
-        escape = true;
-      } else {
-        current_frame.push_back(byte);
+      // 没找到完整帧，尝试再读取一次
+      const bool ok = tread(timeout_ms);
+      if (!ok) {
+        ROS_WARN("sread timeout or read error while waiting for SLIP frame");
+        return {};  // 读失败或超时，返回空帧
       }
     }
-    if (last_end_index > 0) {
-      recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + static_cast<int>(last_end_index));
-    }
-    return last_payload;
   }
   ssize_t send(const char *d) const {
     if (serial_port < 0)
