@@ -103,9 +103,8 @@ public:
       tread(timeout_ms);
       for (unsigned char byte : recv_buffer) {
         if (byte == 0xC0) {
-          if (in_frame && !current_frame.empty()) {
+          if (in_frame && !current_frame.empty())
             payload = current_frame;
-          }
           current_frame.clear();
           in_frame = true;
           escape = false;
