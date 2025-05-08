@@ -100,7 +100,7 @@ public:
     bool in_frame = false;
     bool escape = false;
     size_t last_end_index = 0;
-    while (true) {
+    for(int retry = 0; retry < 10; retry++) {
       for (size_t i = 0; i < recv_buffer.size(); ++i) {
         uint8_t byte = recv_buffer[i];
         if (byte == 0xC0) {
