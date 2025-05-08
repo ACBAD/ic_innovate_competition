@@ -186,6 +186,7 @@ std::vector<uint8_t> packDatas() {
 }
 
 bool decodeDatas(const std::vector<uint8_t>& bin_datas) {
+  if(bin_datas.size() < 10)return false;
   for (int i = 0; i < 3; i++) {
     rwheel_ticks |= bin_datas[i];
     rwheel_ticks <<= 8;
@@ -223,7 +224,6 @@ int main(int argc, char* argv[]) {
   while (ros::ok()) {
     ros::spinOnce();
     serial_device.ssend(packDatas());
-    // ReSharper disable once CppDFAConstantConditions
     if(decodeDatas(serial_device.sread())) {
       std_msgs::Int32 send_msg;
       send_msg.data = static_cast<int32_t>(rwheel_ticks);
@@ -236,6 +236,8 @@ int main(int argc, char* argv[]) {
       u8_msg.data = clogging_state;
       clog_pub.publish(u8_msg);
     }
+    else
+      ROS_WARN("Receive Failed!");
     rate.sleep();
   }
 }
