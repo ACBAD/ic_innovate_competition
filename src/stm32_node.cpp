@@ -38,6 +38,7 @@ public:
       ROS_ERROR("Failed to set serial port: tcgetattr failed");
       close(serial_port);
     }
+    cfmakeraw(&tty);
     cfsetispeed(&tty, B115200);
     cfsetospeed(&tty, B115200);
     tty.c_iflag &= ~(BRKINT | IMAXBEL);
