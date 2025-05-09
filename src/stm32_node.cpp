@@ -95,8 +95,6 @@ public:
     bool in_frame = false;
     bool escape = false;
     while (true) {
-      if(payload.size() != payload_size)
-        break;
       if(!tread(timeout_ms)) {
         ROS_WARN("Read timeout!");
         break;
@@ -124,7 +122,7 @@ public:
           current_frame.push_back(byte);
         }
       }
-      if (!payload.empty()) {
+      if (payload.size() == payload_size) {
         recv_buffer.clear();
         ROS_DEBUG("Decode successfully");
         return payload;
