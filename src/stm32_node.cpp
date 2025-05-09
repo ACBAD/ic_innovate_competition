@@ -89,7 +89,7 @@ public:
       recv_buffer.push_back(buffer[i]);
     return static_cast<int>(read_count);
   }
-  std::vector<uint8_t> sread(const size_t payload_size, const int timeout_ms = 5) {
+  std::vector<uint8_t> sread(const size_t payload_size, const int timeout_ms = 1) {
     std::vector<uint8_t> payload;
     std::vector<uint8_t> current_frame;
     bool in_frame = false;
@@ -131,7 +131,6 @@ public:
         return payload;
       }
     }
-    ROS_DEBUG("Reach max retry");
     return {};
   }
   ssize_t ssend(const std::vector<uint8_t>& payload) const {
