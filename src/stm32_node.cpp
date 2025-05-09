@@ -95,7 +95,7 @@ public:
     bool in_frame = false;
     bool escape = false;
     while (true) {
-      if(payload.size() >= payload_size)
+      if(payload.size() != payload_size)
         break;
       if(!tread(timeout_ms)) {
         ROS_WARN("Read timeout!");
