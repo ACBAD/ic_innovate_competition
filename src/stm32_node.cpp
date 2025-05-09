@@ -128,6 +128,7 @@ public:
       }
       if (!payload.empty()) {
         recv_buffer.clear();
+        tcflush(serial_port, TCIOFLUSH);
         ROS_DEBUG("Decode successfully");
         return payload;
       }
