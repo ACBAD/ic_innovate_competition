@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <csignal>
 #include <poll.h>
+#include <thread>
+#include <sys/ioctl.h>
 #include <std_msgs/UInt8.h>
 #include <std_msgs/Int32.h>
 
@@ -48,7 +50,7 @@ public:
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
     tty.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | ICANON);
-    tty.c_cc[VMIN] = 1;
+    tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 0;
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
       ROS_ERROR("Failed to set serial port: tcsetattr failed");
@@ -66,21 +68,19 @@ public:
       ROS_WARN("Read failed: serial not open");
       return 0;
     }
-    pollfd fds{};
-    fds.fd = serial_port;
-    fds.events = POLLIN;
-    const int ret = poll(&fds, 1, timeout_ms);
-    if (ret < 0) {
-      ROS_WARN("Poll error");
-      return ret;
-    }
-    if (!(fds.revents & POLLIN)) {
-      ROS_WARN("Poll event not triggered");
-      return 0;
+    int bytes;
+    const auto start = std::chrono::steady_clock::now();
+    while (true) {
+      auto now  = std::chrono::steady_clock::now();
+      if(std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeout_ms)
+        return 0;
+      ioctl(serial_port, TIOCINQ, &bytes);
+      if(bytes > 0)break;
+      std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
     char buffer[READ_STR_LENGTH];
     const ssize_t read_count = read(serial_port, buffer, READ_STR_LENGTH);
-    if (read_count <= 0) {
+    if (read_count < 0) {
       ROS_WARN("Read error, count = %ld", read_count);
       return 0;
     }
