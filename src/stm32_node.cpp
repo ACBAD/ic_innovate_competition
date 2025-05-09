@@ -94,6 +94,7 @@ public:
     std::vector<uint8_t> current_frame;
     bool in_frame = false;
     bool escape = false;
+    recv_buffer.clear();
     while (true) {
       if(tread(timeout_ms) == 0) {
         ROS_WARN("Read timeout!");
