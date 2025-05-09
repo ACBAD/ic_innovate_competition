@@ -76,7 +76,7 @@ public:
         return 0;
       ioctl(serial_port, TIOCINQ, &bytes);
       if(bytes > 0)break;
-      std::this_thread::sleep_for(std::chrono::microseconds(10));
+      // std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
     char buffer[READ_STR_LENGTH];
     const ssize_t read_count = read(serial_port, buffer, READ_STR_LENGTH);
@@ -89,7 +89,7 @@ public:
       recv_buffer.push_back(buffer[i]);
     return static_cast<int>(read_count);
   }
-  std::vector<uint8_t> sread(const size_t payload_size, const int timeout_ms = 1) {
+  std::vector<uint8_t> sread(const size_t payload_size, const int timeout_ms = 5) {
     std::vector<uint8_t> payload;
     std::vector<uint8_t> current_frame;
     bool in_frame = false;
