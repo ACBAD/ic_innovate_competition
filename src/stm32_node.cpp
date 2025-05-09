@@ -128,6 +128,7 @@ public:
       }
       if (!payload.empty()) {
         recv_buffer.clear();
+        ROS_DEBUG("Decode successfully");
         return payload;
       }
     }
