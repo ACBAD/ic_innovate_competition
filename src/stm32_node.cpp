@@ -41,15 +41,15 @@ public:
     cfmakeraw(&tty);
     cfsetispeed(&tty, B115200);
     cfsetospeed(&tty, B115200);
-    tty.c_iflag &= ~(BRKINT | IMAXBEL);
-    tty.c_cflag |= (CLOCAL | CREAD);
+    tty.c_iflag &= ~IMAXBEL;
+    tty.c_cflag |= CLOCAL | CREAD;
     tty.c_cflag &= ~CSIZE;
     tty.c_cflag |= CS8;
     tty.c_cflag &= ~PARENB;
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
     tty.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | ICANON);
-    tty.c_cc[VMIN] = 1;
+    tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 0;
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
       ROS_ERROR("Failed to set serial port: tcsetattr failed");
