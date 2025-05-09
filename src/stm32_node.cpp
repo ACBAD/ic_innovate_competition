@@ -2,7 +2,6 @@
 #include <geometry_msgs/Twist.h>
 #include <unistd.h>
 #include <termios.h>
-#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <csignal>
 #include <poll.h>
@@ -49,60 +48,59 @@ public:
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
     tty.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | ICANON);
-    tty.c_cc[VMIN] = 0;
+    tty.c_cc[VMIN] = 1;
     tty.c_cc[VTIME] = 0;
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
       ROS_ERROR("Failed to set serial port: tcsetattr failed");
       close(serial_port);
     }
     ROS_WARN("Serial Open");
-    int size = READ_STR_LENGTH;
-    ioctl(serial_port, TIOCSWINSZ, &size);
-    ROS_WARN("Set buffer size: %d", size);
     recv_buffer.resize(READ_STR_LENGTH);
   }
   ~SerialDevice() {
     if (serial_port >= 0)
       close(serial_port);
   }
-  const std::vector<uint8_t>* tread(const int timeout_ms) {
+  int tread(const int timeout_ms) {
     if (serial_port < 0) {
       ROS_WARN("Read failed: serial not open");
-      return nullptr;
+      return 0;
     }
     pollfd fds{};
     fds.fd = serial_port;
     fds.events = POLLIN;
     const int ret = poll(&fds, 1, timeout_ms);
-    if (ret <= 0) {
-      if (ret == 0)
-        ROS_WARN("Read timeout");
-      else
-        ROS_WARN("Poll error");
-      return nullptr;
+    if (ret < 0) {
+      ROS_WARN("Poll error");
+      return ret;
     }
     if (!(fds.revents & POLLIN)) {
       ROS_WARN("Poll event not triggered");
-      return nullptr;
+      return 0;
     }
     char buffer[READ_STR_LENGTH];
     const ssize_t read_count = read(serial_port, buffer, READ_STR_LENGTH);
     if (read_count <= 0) {
       ROS_WARN("Read error, count = %ld", read_count);
-      return nullptr;
+      return 0;
     }
     ROS_DEBUG("Read %ld bytes", read_count);
     for (uint8_t i = 0; i < read_count; i++)
       recv_buffer.push_back(buffer[i]);
-    return &recv_buffer;
+    return static_cast<int>(read_count);
   }
-  std::vector<uint8_t> sread(const int timeout_ms = 5) {
+  std::vector<uint8_t> sread(const size_t payload_size, const int timeout_ms = 5) {
     std::vector<uint8_t> payload;
     std::vector<uint8_t> current_frame;
     bool in_frame = false;
     bool escape = false;
-    for(int retry = 0; retry < 10; retry++) {
-      tread(timeout_ms);
+    while (true) {
+      if(payload.size() >= payload_size)
+        break;
+      if(!tread(timeout_ms)) {
+        ROS_WARN("Read timeout!");
+        break;
+      }
       for (unsigned char byte : recv_buffer) {
         if (byte == 0xC0) {
           if (in_frame && !current_frame.empty())
@@ -153,8 +151,9 @@ public:
       }
     }
     encoded.push_back(0xC0);
-    tcflush(serial_port, TCIOFLUSH);
+    tcflush(serial_port, TCOFLUSH);
     const ssize_t write_count = write(serial_port, encoded.data(), encoded.size());
+    tcdrain(serial_port);
     if (write_count == static_cast<ssize_t>(encoded.size())) {
       ROS_DEBUG("Sent SLIP frame with payload size: %lu", payload.size());
     } else {
@@ -215,7 +214,7 @@ int main(int argc, char* argv[]) {
   while (ros::ok()) {
     ros::spinOnce();
     serial_device.ssend(packDatas());
-    if(decodeDatas(serial_device.sread())) {
+    if(decodeDatas(serial_device.sread(10))) {
       std_msgs::Int32 send_msg;
       send_msg.data = static_cast<int32_t>(rwheel_ticks);
       rw_pub.publish(send_msg);
