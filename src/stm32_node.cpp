@@ -227,6 +227,8 @@ int main(int argc, char* argv[]) {
       u8_msg.data = clogging_state;
       clog_pub.publish(u8_msg);
     }
+    else
+      ROS_DEBUG("Payload size does not match");
     rate.sleep();
   }
 }
