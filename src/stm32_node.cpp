@@ -95,7 +95,7 @@ public:
     bool in_frame = false;
     bool escape = false;
     while (true) {
-      if(!tread(timeout_ms)) {
+      if(tread(timeout_ms) == 0) {
         ROS_WARN("Read timeout!");
         break;
       }
