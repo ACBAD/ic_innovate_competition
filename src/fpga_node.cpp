@@ -139,7 +139,8 @@ public:
     if (serial_port < 0)
       return -10;
     std::vector<uint8_t> encoded;
-    encoded.reserve(payload.size() + 10);
+    encoded.reserve(payload.size() * 2 + 4);
+    encoded.push_back(0xC0);
     for (uint8_t byte : payload) {
       if (byte == 0xC0) {
         encoded.push_back(0xDB);
