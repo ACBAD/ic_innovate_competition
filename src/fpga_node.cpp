@@ -7,6 +7,8 @@
 #include <poll.h>
 #include <thread>
 #include <sys/ioctl.h>
+#include <vector>
+#include <cstdint>
 #include <std_msgs/UInt8.h>
 #include <std_msgs/Int32.h>
 
@@ -14,6 +16,8 @@
 #define MAX_LINEAR_SPEED 10.0
 #define MAX_ANGULAR_SPEED 2.0
 #define READ_STR_LENGTH 500
+#define WHEEL_SEPRATION 0.155
+#define METER_PER_ROTATE 0.207
 
 geometry_msgs::Twist global_vel_msg;
 uint32_t rwheel_ticks = 0;
@@ -160,15 +164,31 @@ public:
   }
 };
 
+inline void appendInt16BE(std::vector<uint8_t>& buf, const int16_t value) {
+  buf.push_back(static_cast<uint8_t>((value >> 8) & 0xFF)); // 高字节
+  buf.push_back(static_cast<uint8_t>(value & 0xFF));        // 低字节
+}
+
+template <typename T>
+const T& clamp(const T& val, const T& low, const T& high) {
+  return val < low ? low : val > high ? high : val;
+}
+
 std::vector<uint8_t> packDatas() {
-  std::vector<uint8_t> buffer({0, 0, 0});
-  const auto normalized_x_vel = static_cast<int8_t>( global_vel_msg.linear.x > MAX_LINEAR_SPEED ?
-                                                       MAX_LINEAR_SPEED : global_vel_msg.linear.x / MAX_LINEAR_SPEED * 100.0);
-  const auto normalized_r_vel = static_cast<int8_t>( global_vel_msg.angular.z > MAX_ANGULAR_SPEED ?
-                                                       MAX_ANGULAR_SPEED : global_vel_msg.angular.z / MAX_ANGULAR_SPEED * 100.0);
-  buffer[0] |= normalized_x_vel;
-  buffer[1] |= normalized_r_vel;
-  buffer[2] |= cover_cmd;
+  std::vector<uint8_t> buffer;
+  buffer.reserve(10); // 预留空间以避免频繁扩容
+  // 限速到 ±2 m/s
+  const double base_vel = clamp(global_vel_msg.linear.x, -2.0, 2.0);
+  const double l_vel = base_vel - global_vel_msg.angular.z * WHEEL_SEPRATION / 2.0;
+  const double r_vel = base_vel + global_vel_msg.angular.z * WHEEL_SEPRATION / 2.0;
+  // 转换为 RPM 并强转为 int16_t（注意范围是否溢出）
+  const auto l_rpm = static_cast<int16_t>(l_vel * 60.0 / METER_PER_ROTATE);
+  const auto r_rpm = static_cast<int16_t>(r_vel * 60.0 / METER_PER_ROTATE);
+  // 写入字节（高位在前，大端格式）
+  appendInt16BE(buffer, l_rpm);
+  appendInt16BE(buffer, r_rpm);
+  buffer.push_back(cover_cmd);
+  // 可以继续添加其他字段
   return buffer;
 }
 
