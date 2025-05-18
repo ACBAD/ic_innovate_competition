@@ -4,7 +4,6 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <csignal>
-#include <poll.h>
 #include <thread>
 #include <sys/ioctl.h>
 #include <vector>
@@ -24,7 +23,6 @@ uint32_t rwheel_ticks = 0;
 uint32_t lwheel_ticks = 0;
 uint8_t cover_cmd = 0;
 bool cover_state = false;
-uint8_t clogging_state = 'N';
 
 void updateVel(const geometry_msgs::Twist& msg) {global_vel_msg = msg;}
 
@@ -207,7 +205,6 @@ bool decodeDatas(const std::vector<uint8_t>& bin_datas) {
   lwheel_ticks |= bin_datas[7];
   if(bin_datas[8])cover_state = true;
   else cover_state = false;
-  clogging_state = bin_datas[9];
   return true;
 }
 
@@ -217,7 +214,6 @@ int main(int argc, char* argv[]) {
   const ros::Publisher rw_pub = node_handle.advertise<std_msgs::Int32>("/rwheel_ticks", 1);
   const ros::Publisher lw_pub = node_handle.advertise<std_msgs::Int32>("/lwheel_ticks", 1);
   const ros::Publisher cover_pub = node_handle.advertise<std_msgs::UInt8>("/cover_state", 1);
-  const ros::Publisher clog_pub = node_handle.advertise<std_msgs::UInt8>("clogging_state", 1);
   ros::Subscriber vel_sub = node_handle.subscribe("/cmd_vel", 1, updateVel);
   ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info);
   ros::Rate rate(30);
@@ -241,8 +237,6 @@ int main(int argc, char* argv[]) {
       std_msgs::UInt8 u8_msg;
       u8_msg.data = cover_state;
       cover_pub.publish(u8_msg);
-      u8_msg.data = clogging_state;
-      clog_pub.publish(u8_msg);
     }
     else
       ROS_DEBUG("Payload size does not match");
