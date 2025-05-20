@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -146,6 +147,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(fpga_node src/fpga_node.cpp)
+add_executable(fake_odom src/fake_odom_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -159,6 +161,7 @@ add_executable(fpga_node src/fpga_node.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(fpga_node ${catkin_LIBRARIES})
+target_link_libraries(fake_odom ${catkin_LIBRARIES})
 
 #############
 ## Install ##
