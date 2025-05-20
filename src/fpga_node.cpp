@@ -26,6 +26,21 @@ bool cover_state = false;
 
 void updateVel(const geometry_msgs::Twist& msg) {global_vel_msg = msg;}
 
+void vectorToHexString(const std::vector<uint8_t>& vec, std::string& output) {
+  std::ostringstream oss;
+  for (const unsigned char i : vec) {
+    oss << "0x"
+        << std::setw(2)  // Ensure two digits for each byte
+        << std::setfill('0')  // Fill with zeros if needed
+        << std::hex  // Use hexadecimal format
+        << static_cast<int>(i // Convert uint8_t to int for correct printing
+        )  // Convert uint8_t to int for correct printing
+        << " ";  // Add space between hex bytes
+  }
+  output = oss.str();  // Assign the string to the output parameter
+}
+
+
 class SerialDevice {
   int serial_port = -1;
   std::vector<uint8_t> recv_buffer;
@@ -156,6 +171,9 @@ public:
     tcdrain(serial_port);
     if (write_count == static_cast<ssize_t>(encoded.size())) {
       ROS_DEBUG("Sent SLIP frame with payload size: %lu", payload.size());
+      std::string hex;
+      vectorToHexString(encoded, hex);
+      ROS_DEBUG("Sent raw content: %s", hex.c_str());
     } else {
       ROS_WARN("Partial SLIP frame sent: expected %lu, sent %ld", encoded.size(), write_count);
     }
