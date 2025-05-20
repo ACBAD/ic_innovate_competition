@@ -7,7 +7,8 @@
 #include <thread>
 #include <sys/ioctl.h>
 #include <vector>
-#include <cstdint>
+#include <cstdint>.
+#include <algorithm>
 #include <std_msgs/UInt8.h>
 #include <std_msgs/Int32.h>
 
@@ -182,8 +183,8 @@ public:
 };
 
 inline void appendInt16BE(std::vector<uint8_t>& buf, const int16_t value) {
-  buf.push_back(static_cast<uint8_t>(value & 0xFF));
-  buf.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
+  buf.push_back(static_cast<uint8_t>((value >> 8) & 0xFF)); // 高字节
+  buf.push_back(static_cast<uint8_t>(value & 0xFF));        // 低字节
 }
 
 template <typename T>
@@ -205,6 +206,7 @@ std::vector<uint8_t> packDatas() {
   appendInt16BE(buffer, l_rpm);
   appendInt16BE(buffer, r_rpm);
   buffer.push_back(cover_cmd);
+  std::reverse(buffer.begin(), buffer.end());
   // 可以继续添加其他字段
   return buffer;
 }
