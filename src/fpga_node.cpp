@@ -228,18 +228,18 @@ int main(int argc, char* argv[]) {
   while (ros::ok()) {
     ros::spinOnce();
     serial_device.ssend(packDatas());
-    if(decodeDatas(serial_device.sread(10))) {
-      std_msgs::Int32 send_msg;
-      send_msg.data = static_cast<int32_t>(rwheel_ticks);
-      rw_pub.publish(send_msg);
-      send_msg.data = static_cast<int32_t>(lwheel_ticks);
-      lw_pub.publish(send_msg);
-      std_msgs::UInt8 u8_msg;
-      u8_msg.data = cover_state;
-      cover_pub.publish(u8_msg);
-    }
-    else
-      ROS_DEBUG("Payload size does not match");
+    // if(decodeDatas(serial_device.sread(10))) {
+    //   std_msgs::Int32 send_msg;
+    //   send_msg.data = static_cast<int32_t>(rwheel_ticks);
+    //   rw_pub.publish(send_msg);
+    //   send_msg.data = static_cast<int32_t>(lwheel_ticks);
+    //   lw_pub.publish(send_msg);
+    //   std_msgs::UInt8 u8_msg;
+    //   u8_msg.data = cover_state;
+    //   cover_pub.publish(u8_msg);
+    // }
+    // else
+      // ROS_DEBUG("Payload size does not match");
     rate.sleep();
   }
 }
