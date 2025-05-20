@@ -16,7 +16,7 @@ void odomCallback( const geometry_msgs::TwistConstPtr& cmd_vel) {
 
 int main( int argc, char** argv) {
 
-	ros::init(argc, argv, "/fake_odom");
+	ros::init(argc, argv, "fake_odom");
 
 	ros::NodeHandle n;
 	ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
