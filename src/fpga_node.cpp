@@ -182,8 +182,8 @@ public:
 };
 
 inline void appendInt16BE(std::vector<uint8_t>& buf, const int16_t value) {
-  buf.push_back(static_cast<uint8_t>((value >> 8) & 0xFF)); // 高字节
-  buf.push_back(static_cast<uint8_t>(value & 0xFF));        // 低字节
+  buf.push_back(static_cast<uint8_t>(value & 0xFF));
+  buf.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
 }
 
 template <typename T>
