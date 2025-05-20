@@ -20,7 +20,6 @@ int main( int argc, char** argv) {
 
 	ros::NodeHandle n;
 	ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
-	ros::Publisher joint_state_pub = n.advertise<sensor_msgs::JointState>("joint_states", 50);
 	ros::Subscriber sub = n.subscribe("cmd_vel", 1000, odomCallback);
 	tf::TransformBroadcaster transform;
 
@@ -47,6 +46,17 @@ int main( int argc, char** argv) {
 		th += delta_th;
 
 		geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+
+		// publish the transform odom --> base_link
+		geometry_msgs::TransformStamped odom_trans;
+		odom_trans.header.stamp = current_time;
+		odom_trans.header.frame_id = "odom";
+		odom_trans.child_frame_id = "base_link";
+		odom_trans.transform.translation.x = x;
+		odom_trans.transform.translation.y = y;
+		odom_trans.transform.translation.z = 0.0;
+		odom_trans.transform.rotation = odom_quat;
+		transform.sendTransform(odom_trans);
 
 		// publis /odom
 		nav_msgs::Odometry odom;
