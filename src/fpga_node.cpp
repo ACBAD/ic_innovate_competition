@@ -209,7 +209,7 @@ bool decodeDatas(const std::vector<uint8_t>& bin_datas) {
 }
 
 int main(int argc, char* argv[]) {
-  ros::init(argc, argv, "stm32_node");
+  ros::init(argc, argv, "fpga_node");
   ros::NodeHandle node_handle;
   const ros::Publisher rw_pub = node_handle.advertise<std_msgs::Int32>("/rwheel_ticks", 1);
   const ros::Publisher lw_pub = node_handle.advertise<std_msgs::Int32>("/lwheel_ticks", 1);
