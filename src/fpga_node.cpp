@@ -7,7 +7,7 @@
 #include <thread>
 #include <sys/ioctl.h>
 #include <vector>
-#include <cstdint>.
+#include <cstdint>
 #include <algorithm>
 #include <std_msgs/UInt8.h>
 #include <std_msgs/Int32.h>
