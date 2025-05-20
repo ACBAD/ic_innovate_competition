@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
     ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug);
   else
     ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info);
-  ros::Rate rate(30);
+  ros::Rate rate(10);
   // ReSharper disable once CppTooWideScope
   SerialDevice serial_device;
   global_vel_msg.angular.x = 0;
