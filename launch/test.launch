@@ -2,7 +2,8 @@
     <node pkg="icic_pkg" type="fpga_node" name="fpga_node"/>
     <include file="$(find lslidar_driver)/launch/lslidar_serial.launch"/>
     <node pkg="tf2_ros" type="static_transform_publisher" args=" 0 0 0 2.97 0 0 base_link laser" name="static_transform_laser"/>
-    <node pkg="tf2_ros" type="static_transform_publisher" args=" 0 0 0 0 0 0 odom base_link" name="static_transform_odom"/>
+<!--    <node pkg="tf2_ros" type="static_transform_publisher" args=" 0 0 0 0 0 0 odom base_link" name="static_transform_odom"/>-->
+    <node pkg="icic_pkg" type="fake_odom_node" name="fake_odom" />
     <node pkg="map_server" type="map_server" args="/home/khadas/map.yaml" name="map_"/>
     <include file="$(find icic_pkg)/launch/amcl_diff.launch"/>
     <include file="$(find icic_pkg)/launch/move_base.launch"/>
