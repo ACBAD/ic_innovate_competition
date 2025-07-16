@@ -197,8 +197,8 @@ std::vector<uint8_t> packDatas() {
   buffer.reserve(10); // 预留空间以避免频繁扩容
   // 限速到 ±2 m/s
   const double base_vel = clamp(global_vel_msg.linear.x, -2.0, 2.0);
-  const double l_vel = base_vel - global_vel_msg.angular.z * WHEEL_SEPRATION / 2.0;
-  const double r_vel = base_vel + global_vel_msg.angular.z * WHEEL_SEPRATION / 2.0;
+  const double l_vel = base_vel + global_vel_msg.angular.z * WHEEL_SEPRATION / 2.0;
+  const double r_vel = base_vel - global_vel_msg.angular.z * WHEEL_SEPRATION / 2.0;
   // 转换为 RPM 并强转为 int16_t（注意范围是否溢出）
   const auto l_rpm = static_cast<int16_t>(l_vel * 60.0 / METER_PER_ROTATE);
   const auto r_rpm = static_cast<int16_t>(r_vel * 60.0 / METER_PER_ROTATE);
