@@ -2,4 +2,5 @@
     <node pkg="icic_pkg" type="fpga_node" name="fpga_node"/>
     <include file="$(find lslidar_driver)/launch/lslidar_serial.launch"/>
     <node pkg="tf2_ros" type="static_transform_publisher" args=" 0 0 0 2.97 0 0 base_link laser" name="static_transform_laser"/>
+    <node pkg="hector_mapping" type="hector_mapping" />
 </launch>
